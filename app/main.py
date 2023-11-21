@@ -1,47 +1,20 @@
+import argparse
 import json
-import sys
-
-# import bencodepy - available if you need it!
-# import requests - available if you need it!
-
-# Examples:
-#
-# - decode_bencode(b"5:hello") -> b"hello"
-# - decode_bencode(b"10:hello12345") -> b"hello12345"
-def decode_bencode(bencoded_value):
-    if chr(bencoded_value[0]).isdigit():
-        first_colon_index = bencoded_value.find(b":")
-        if first_colon_index == -1:
-            raise ValueError("Invalid encoded value")
-        return bencoded_value[first_colon_index+1:]
-    else:
-        raise NotImplementedError("Only strings are supported at the moment")
 
 
-def main():
-    command = sys.argv[1]
+def main() -> None:
+    arg_parser = argparse.ArgumentParser()
 
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!")
+    command_arg_parser = arg_parser.add_subparsers(dest='command')
 
-    if command == "decode":
-        bencoded_value = sys.argv[2].encode()
+    decode_arg_parser = command_arg_parser.add_parser('decode')
+    decode_arg_parser.add_argument('value')
 
-        # json.dumps() can't handle bytes, but bencoded "strings" need to be
-        # bytestrings since they might contain non utf-8 characters.
-        #
-        # Let's convert them to strings for printing to the console.
-        def bytes_to_str(data):
-            if isinstance(data, bytes):
-                return data.decode()
+    args = arg_parser.parse_args()
 
-            raise TypeError(f"Type not serializable: {type(data)}")
-
-        # Uncomment this block to pass the first stage
-        # print(json.dumps(decode_bencode(bencoded_value), default=bytes_to_str))
-    else:
-        raise NotImplementedError(f"Unknown command {command}")
+    if args.command == 'decode':
+        print(args.value)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
