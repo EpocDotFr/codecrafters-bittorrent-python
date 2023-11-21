@@ -1,24 +1,23 @@
-from typing import Union, List, Optional
+from typing import Union, List, Optional, BinaryIO
 from collections import OrderedDict
-from io import StringIO
 
 
-def unpack(f: StringIO) -> Optional[Union[str, int, List, OrderedDict]]:
+def unpack(f: BinaryIO) -> Optional[Union[bytes, int, List, OrderedDict]]:
     type_ = f.read(1)
 
-    if type_ == 'i': # Integer
-        integer = ''
+    if type_ == b'i': # Integer
+        integer = b''
 
         while True:
             char = f.read(1)
 
-            if not char or char == 'e':
+            if not char or char == b'e':
                 break
 
             integer += char
 
         return int(integer)
-    elif type_ == 'l': # List
+    elif type_ == b'l': # List
         list_ = []
 
         while True:
@@ -28,7 +27,7 @@ def unpack(f: StringIO) -> Optional[Union[str, int, List, OrderedDict]]:
                 return list_
 
             list_.append(value)
-    elif type_ == 'd': # Dictionary
+    elif type_ == b'd': # Dictionary
         dict_ = OrderedDict()
 
         while True:
@@ -39,17 +38,18 @@ def unpack(f: StringIO) -> Optional[Union[str, int, List, OrderedDict]]:
 
             value = unpack(f)
 
-            dict_[key] = value
-    elif type_ == 'e': # End of list or dictionary
+            dict_[key.decode()] = value
+    elif type_ == b'e': # End of list or dictionary
         return None
     else: # String
         length = type_
+
         while True:
             char = f.read(1)
 
-            if not char or char == ':':
+            if not char or char == b':':
                 break
 
             length += char
 
-        return f.read(int(length))
+        return f.read(int(length.decode()))
