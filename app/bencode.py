@@ -1,18 +1,21 @@
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Optional
+from collections import OrderedDict
 from io import StringIO
 
 
-def unpack(f: StringIO) -> Optional[Union[str, int, List, Dict]]:
+def unpack(f: StringIO) -> Optional[Union[str, int, List, OrderedDict]]:
     type_ = f.read(1)
 
     if type_ == 'i': # Integer
         integer = ''
-        char = ''
 
-        while char != 'e':
-            integer += char
-
+        while True:
             char = f.read(1)
+
+            if not char or char == 'e':
+                break
+
+            integer += char
 
         return int(integer)
     elif type_ == 'l': # List
@@ -26,18 +29,27 @@ def unpack(f: StringIO) -> Optional[Union[str, int, List, Dict]]:
 
             list_.append(value)
     elif type_ == 'd': # Dictionary
-        raise NotImplementedError()
+        dict_ = OrderedDict()
+
+        while True:
+            key = unpack(f)
+
+            if key is None:
+                return dict_
+
+            value = unpack(f)
+
+            dict_[key] = value
     elif type_ == 'e': # End of list or dictionary
         return None
     else: # String
         length = type_
-        char = ''
-
-        while char != ':':
-            length += char
-
+        while True:
             char = f.read(1)
 
-        length = int(length)
+            if not char or char == ':':
+                break
 
-        return f.read(length)
+            length += char
+
+        return f.read(int(length))
