@@ -6,7 +6,9 @@ def unpack(data: str) -> Union[str, int, List, Dict]:
         raise InvalidPattern('data is empty')
 
     if data[0] == 'i': # Integer
-        raise NotImplemented()
+        delimiter = data.index('e')
+
+        return int(data[1:delimiter])
     elif data[0] == 'l': # List
         raise NotImplemented()
     elif data[0] == 'd': # Dictionnary
@@ -15,6 +17,6 @@ def unpack(data: str) -> Union[str, int, List, Dict]:
         delimiter = data.index(':')
         length = int(data[:delimiter])
 
-        return data[delimiter + 1:delimiter + 1 + length]
+        return data[delimiter + 1:delimiter + length + 1]
 
     raise ValueError('Unknown data format')
