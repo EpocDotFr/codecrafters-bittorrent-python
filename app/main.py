@@ -14,7 +14,7 @@ def main() -> None:
     args = arg_parser.parse_args()
 
     if args.command == 'decode':
-        print(bencode.unpack(args.data)) # TODO To JSON
+        print(json.dumps(bencode.unpack(args.data)))
 
 
 if __name__ == '__main__':
