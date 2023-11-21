@@ -1,22 +1,45 @@
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Optional
+from io import StringIO
 
 
-def unpack(data: str) -> Union[str, int, List, Dict]:
-    if not data:
-        raise InvalidPattern('data is empty')
+def unpack(f: StringIO) -> Optional[Union[str, int, List, Dict]]:
+    type_ = f.read(1)
 
-    if data[0] == 'i': # Integer
-        delimiter = data.index('e')
+    if type_ == 'i': # Integer
+        integer = ''
+        char = ''
 
-        return int(data[1:delimiter])
-    elif data[0] == 'l': # List
-        raise NotImplemented()
-    elif data[0] == 'd': # Dictionnary
-        raise NotImplemented()
+        while char != 'e':
+            integer += char
+
+            char = f.read(1)
+
+        return int(integer)
+    elif type_ == 'l': # List
+        list_ = []
+
+        while True:
+            value = unpack(f)
+
+            if value is None:
+                return list_
+
+            list_.append(value)
+    elif type_ == 'd': # Dictionnary
+        raise NotImplementedError()
+    elif type_ == 'e': # End of list or dictionnary
+        return None
     else: # String
-        delimiter = data.index(':')
-        length = int(data[:delimiter])
+        length = type_
+        char = ''
 
-        return data[delimiter + 1:delimiter + length + 1]
+        while char != ':':
+            length += char
+
+            char = f.read(1)
+
+        length = int(length)
+
+        return f.read(length)
 
     raise ValueError('Unknown data format')
