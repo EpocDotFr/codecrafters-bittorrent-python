@@ -25,9 +25,9 @@ def unpack(f: StringIO) -> Optional[Union[str, int, List, Dict]]:
                 return list_
 
             list_.append(value)
-    elif type_ == 'd': # Dictionnary
+    elif type_ == 'd': # Dictionary
         raise NotImplementedError()
-    elif type_ == 'e': # End of list or dictionnary
+    elif type_ == 'e': # End of list or dictionary
         return None
     else: # String
         length = type_
@@ -41,5 +41,3 @@ def unpack(f: StringIO) -> Optional[Union[str, int, List, Dict]]:
         length = int(length)
 
         return f.read(length)
-
-    raise ValueError('Unknown data format')
