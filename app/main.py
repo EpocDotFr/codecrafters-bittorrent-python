@@ -1,3 +1,4 @@
+from app.tracker import Tracker
 from app.torrent import Torrent
 from app import bencode
 from io import BytesIO
@@ -37,15 +38,22 @@ def main() -> None:
 
         print(f'Tracker URL: {torrent.tracker_url}')
         print(f'Length: {torrent.length}')
-        print(f'Info Hash: {torrent.info_hash}')
+        print(f'Info Hash: {torrent.info_hash.hexdigest()}')
         print(f'Piece Length: {torrent.piece_length}')
         print(f'Piece Hashes:')
 
         for piece_hash in torrent.piece_hashes:
             print(piece_hash)
     elif args.command == 'peers':
-        pass
+        with open(args.filename, 'rb') as f:
+            torrent = Torrent.load(f)
 
+        tracker = Tracker(torrent)
+
+        for peer in tracker.request()['peers']:
+            ip, port = peer
+
+            print(f'{ip}:{port}')
 
 if __name__ == '__main__':
     main()
