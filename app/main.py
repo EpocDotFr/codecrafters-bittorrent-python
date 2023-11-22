@@ -1,9 +1,12 @@
 from app.tracker import Tracker
 from app.torrent import Torrent
+from app.peer import Peer
 from app import bencode
 from io import BytesIO
 import argparse
 import json
+
+MY_PEER_ID = 'github.com/EpocDotFr'
 
 
 def _bytes_to_str(obj) -> str:
@@ -27,6 +30,10 @@ def main() -> None:
     peers_arg_parser = command_arg_parser.add_parser('peers')
     peers_arg_parser.add_argument('filename')
 
+    handshake_arg_parser = command_arg_parser.add_parser('handshake')
+    handshake_arg_parser.add_argument('filename')
+    handshake_arg_parser.add_argument('address')
+
     args = arg_parser.parse_args()
 
     if args.command == 'decode':
@@ -48,12 +55,22 @@ def main() -> None:
         with open(args.filename, 'rb') as f:
             torrent = Torrent.load(f)
 
-        tracker = Tracker(torrent)
+        tracker = Tracker(MY_PEER_ID, torrent)
 
         for peer in tracker.request()['peers']:
             ip, port = peer
 
             print(f'{ip}:{port}')
+    elif args.command == 'handshake':
+        with open(args.filename, 'rb') as f:
+            torrent = Torrent.load(f)
+
+        ip, port = args.address.split(':', maxsplit=2)
+        address = (ip, int(port))
+
+        # with Peer(MY_PEER_ID, torrent, address) as peer:
+        #     print(f'Peer ID: {peer.handshake()[-1].hex()}')
+
 
 if __name__ == '__main__':
     main()

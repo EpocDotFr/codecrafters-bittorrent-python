@@ -2,26 +2,25 @@ from collections import OrderedDict
 from urllib import request, parse
 from app.torrent import Torrent
 from typing import Optional, List
+from socket import inet_ntoa
 from app import bencode
 from io import BytesIO
 import struct
-import socket
-
-PEER_ID = 'github.com/EpocDotFr'
-PORT = 6881
 
 
 class Tracker:
+    my_peer_id: str
     torrent: Torrent
 
-    def __init__(self, torrent: Torrent):
+    def __init__(self, my_peer_id: str, torrent: Torrent):
+        self.my_peer_id = my_peer_id
         self.torrent = torrent
 
     def request(self, left: Optional[int] = None, uploaded: int = 0, downloaded: int = 0) -> OrderedDict:
         parameters = {
             'info_hash': self.torrent.info_hash.digest(),
-            'peer_id': PEER_ID,
-            'port': PORT,
+            'peer_id': self.my_peer_id,
+            'port': 6881,
             'uploaded': uploaded,
             'downloaded': downloaded,
             'left': left or self.torrent.length,
@@ -45,8 +44,6 @@ class Tracker:
         for i in range(0, len(peers), 6):
             ip, port = struct.unpack('>4sH', peers[i:i + 6])
 
-            ip = socket.inet_ntoa(ip)
-
-            ret.append((ip, port))
+            ret.append((inet_ntoa(ip), port))
 
         return ret

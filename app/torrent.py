@@ -12,8 +12,8 @@ class Torrent:
     piece_hashes: List[str]
     info_hash: Any
 
-    def __init__(self, info: OrderedDict):
-        self.data = info
+    def __init__(self, data: OrderedDict):
+        self.data = data
 
         self.tracker_url = self.data['announce'].decode()
         self.length = self.data['info']['length']

@@ -56,21 +56,21 @@ def unpack(f: BinaryIO) -> Optional[Union[bytes, int, List, OrderedDict]]:
 
 
 def pack(f: BinaryIO, data: Union[str, bytes, int, List, OrderedDict]) -> None:
-    if isinstance(data, (str, bytes)):
+    if isinstance(data, (str, bytes)): # Bytes or string
         if isinstance(data, str):
             data = data.encode()
 
         f.write(str(len(data)).encode() + b':' + data)
-    elif isinstance(data, int):
+    elif isinstance(data, int): # Integer
         f.write(b'i' + str(data).encode() + b'e')
-    elif isinstance(data, List):
+    elif isinstance(data, List): # List
         f.write(b'l')
 
         for item in data:
             pack(f, item)
 
         f.write(b'e')
-    elif isinstance(data, OrderedDict):
+    elif isinstance(data, OrderedDict): # Dictionary
         f.write(b'd')
 
         for key, value in data.items():
