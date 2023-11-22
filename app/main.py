@@ -40,11 +40,24 @@ def main() -> None:
 
             f.seek(0)
 
-            hash = sha1(f.read()).hexdigest()
+            info_hash = sha1(f.read()).hexdigest()
+
+        piece_length =  info['info']['piece length']
+
+        pieces = info['info']['pieces']
+
+        piece_hashes = [
+            pieces[i:i + 20].hex() for i in range(0, len(pieces), 20)
+        ]
 
         print(f'Tracker URL: {tracker_url}')
         print(f'Length: {length}')
-        print(f'Info Hash: {hash}')
+        print(f'Info Hash: {info_hash}')
+        print(f'Piece Length: {piece_length}')
+        print(f'Piece Hashes:')
+
+        for piece_hash in piece_hashes:
+            print(piece_hash)
 
 
 if __name__ == '__main__':
