@@ -1,3 +1,4 @@
+from hashlib import sha1
 from app import bencode
 from io import BytesIO
 import argparse
@@ -34,8 +35,16 @@ def main() -> None:
         tracker_url = info['announce'].decode()
         length = info['info']['length']
 
+        with BytesIO() as f:
+            bencode.pack(f, info['info'])
+
+            f.seek(0)
+
+            hash = sha1(f.read()).hexdigest()
+
         print(f'Tracker URL: {tracker_url}')
         print(f'Length: {length}')
+        print(f'Info Hash: {hash}')
 
 
 if __name__ == '__main__':

@@ -53,3 +53,30 @@ def unpack(f: BinaryIO) -> Optional[Union[bytes, int, List, OrderedDict]]:
             length += char
 
         return f.read(int(length.decode()))
+
+
+def pack(f: BinaryIO, data: Union[str, bytes, int, List, OrderedDict]) -> None:
+    if isinstance(data, (str, bytes)):
+        if isinstance(data, str):
+            data = data.encode()
+
+        f.write(str(len(data)).encode() + b':' + data)
+    elif isinstance(data, int):
+        f.write(b'i' + str(data).encode() + b'e')
+    elif isinstance(data, List):
+        f.write(b'l')
+
+        for item in data:
+            pack(f, item)
+
+        f.write(b'e')
+    elif isinstance(data, OrderedDict):
+        f.write(b'd')
+
+        for key, value in data.items():
+            pack(f, key)
+            pack(f, value)
+
+        f.write(b'e')
+    else:
+        raise ValueError('Unhandled data type: {}'.format(type(data)))
