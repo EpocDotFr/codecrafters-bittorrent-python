@@ -8,12 +8,12 @@ PSTRLEN = len(PSTR)
 
 
 class Peer:
-    my_peer_id: str
+    my_peer_id: bytes
     torrent: Torrent
     address: Tuple[str, int]
     socket: socket.socket
 
-    def __init__(self, my_peer_id: str, torrent: Torrent, address: Tuple[str, int]):
+    def __init__(self, my_peer_id: bytes, torrent: Torrent, address: Tuple[str, int]):
         self.my_peer_id = my_peer_id
         self.torrent = torrent
         self.address = address
@@ -29,7 +29,7 @@ class Peer:
             PSTR,
             b'0' * 8,
             self.torrent.info_hash.digest(),
-            self.my_peer_id.encode()
+            self.my_peer_id
         )
 
         return self.receive(handshake_fmt)

@@ -6,7 +6,7 @@ from io import BytesIO
 import argparse
 import json
 
-MY_PEER_ID = 'github.com/EpocDotFr'
+MY_PEER_ID = b'github.com/EpocDotFr'
 
 
 def _bytes_to_str(obj) -> str:

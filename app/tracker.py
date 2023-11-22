@@ -9,10 +9,10 @@ import struct
 
 
 class Tracker:
-    my_peer_id: str
+    my_peer_id: bytes
     torrent: Torrent
 
-    def __init__(self, my_peer_id: str, torrent: Torrent):
+    def __init__(self, my_peer_id: bytes, torrent: Torrent):
         self.my_peer_id = my_peer_id
         self.torrent = torrent
 
