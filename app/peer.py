@@ -55,11 +55,7 @@ class Peer:
         if message_type is None:
             return None
 
-        print('type', message_type)
-
         message_payload = self.socket.recv(message_length - 1) if message_length - 1 != 0 else b''
-
-        print('payload', message_payload)
 
         if message_type == 0:
             return ChokeMessage()
