@@ -4,6 +4,7 @@ from app.peer import Peer
 from app import bencode
 from io import BytesIO
 import argparse
+import random
 import json
 
 MY_PEER_ID = b'github.com/EpocDotFr'
@@ -33,6 +34,11 @@ def main() -> None:
     handshake_arg_parser = command_arg_parser.add_parser('handshake')
     handshake_arg_parser.add_argument('filename')
     handshake_arg_parser.add_argument('address')
+
+    download_piece_arg_parser = command_arg_parser.add_parser('download_piece')
+    download_piece_arg_parser.add_argument('filename')
+    download_piece_arg_parser.add_argument('piece_number', type=int)
+    download_piece_arg_parser.add_argument('-o', '--output')
 
     args = arg_parser.parse_args()
 
@@ -69,9 +75,22 @@ def main() -> None:
         address = (ip, int(port))
 
         with Peer(MY_PEER_ID, torrent, address) as peer:
-            peer_id = peer.handshake()[-1].hex()
+            handshake = peer.handshake()
 
-        print(f'Peer ID: {peer_id}')
+        if handshake:
+            print(f'Peer ID: {handshake[-1].hex()}')
+    elif args.command == 'download_piece':
+        with open(args.filename, 'rb') as f:
+            torrent = Torrent.load(f)
+
+        tracker = Tracker(MY_PEER_ID, torrent)
+
+        address = random.choice(tracker.request()['peers'])
+
+        with Peer(MY_PEER_ID, torrent, address) as peer:
+            peer.download_piece(args.piece_number, args.output)
+
+        print(f'Piece {args.piece_number} downloaded to {args.output}.')
 
 
 if __name__ == '__main__':
