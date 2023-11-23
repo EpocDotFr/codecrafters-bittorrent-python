@@ -1,4 +1,4 @@
-from app.messages import KeepAliveMessage, ChokeMessage, UnchokeMessage, InterestedMessage, NotInterestedMessage, \
+from app.custom_types import KeepAliveMessage, ChokeMessage, UnchokeMessage, InterestedMessage, NotInterestedMessage, \
     BitfieldMessage, HaveMessage, RequestMessage, PieceMessage, CancelMessage
 from typing import Tuple, Optional, Union, Any
 from app.torrent import Torrent
@@ -29,15 +29,17 @@ class Peer:
 
         message = self.receive_message()
 
-        if not message or not isinstance(message, BitfieldMessage):
+        if not isinstance(message, BitfieldMessage):
             return
 
         self.send_message(InterestedMessage())
 
         message = self.receive_message()
 
-        if not message or not isinstance(message, UnchokeMessage):
+        if not isinstance(message, UnchokeMessage):
             return
+
+        # self.send_message(RequestMessage()) TODO
 
     def receive_message(self) -> Optional[Union[KeepAliveMessage, ChokeMessage, UnchokeMessage, InterestedMessage, NotInterestedMessage, HaveMessage, BitfieldMessage, RequestMessage, PieceMessage, CancelMessage]]:
         message_length = self.unpack('I')
@@ -53,7 +55,11 @@ class Peer:
         if message_type is None:
             return None
 
-        message_payload = self.socket.recv(message_length - 1) if message_length - 1 > 0 else b''
+        print('type', message_type)
+
+        message_payload = self.socket.recv(message_length - 1) if message_length - 1 != 0 else b''
+
+        print('payload', message_payload)
 
         if message_type == 0:
             return ChokeMessage()
