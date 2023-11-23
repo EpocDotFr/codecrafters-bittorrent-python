@@ -19,9 +19,10 @@ class Peer:
         self.address = address
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.settimeout(2)
 
     def handshake(self) -> Optional[Tuple]:
-        handshake_fmt = f'H{PSTRLEN}s8s20s20s'
+        handshake_fmt = f'B{PSTRLEN}s8s20s20s'
 
         self.send(
             handshake_fmt,
@@ -44,7 +45,7 @@ class Peer:
         if not data:
             return None
 
-        return struct.unpack(f'>{fmt}', data)
+        return struct.unpack(fmt, data)
 
     def send(self, fmt, *args) -> None:
         self.socket.sendall(

@@ -68,8 +68,10 @@ def main() -> None:
         ip, port = args.address.split(':', maxsplit=2)
         address = (ip, int(port))
 
-        # with Peer(MY_PEER_ID, torrent, address) as peer:
-        #     print(f'Peer ID: {peer.handshake()[-1].hex()}')
+        with Peer(MY_PEER_ID, torrent, address) as peer:
+            peer_id = peer.handshake()[-1].hex()
+
+        print(f'Peer ID: {peer_id}')
 
 
 if __name__ == '__main__':
