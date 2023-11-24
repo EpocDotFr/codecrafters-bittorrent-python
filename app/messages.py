@@ -34,28 +34,13 @@ class TypedMessage(Message):
         return struct.pack('>IB', 1 + len(message_payload), self._type) + message_payload
 
     @classmethod
-    def unserialize(cls, data: bytes):
-        message_type, message_payload = data[0], data[1:]
+    def from_bytes(cls, data: bytes):
+        message_type = data[0]
+        message_payload = data[1:] if len(data) > 1 else b''
 
-        if message_type == 0:
-            class_ = ChokeMessage
-        elif message_type == 1:
-            class_ = UnchokeMessage
-        elif message_type == 2:
-            class_ = InterestedMessage
-        elif message_type == 3:
-            class_ = NotInterestedMessage
-        elif message_type == 4:
-            class_ = HaveMessage
-        elif message_type == 5:
-            class_ = BitfieldMessage
-        elif message_type == 6:
-            class_ = RequestMessage
-        elif message_type == 7:
-            class_ = PieceMessage
-        elif message_type == 8:
-            class_ = CancelMessage
-        else:
+        class_ = TYPED_MESSAGES_BY_ID.get(message_type)
+
+        if not class_:
             raise ValueError(f'Unknown message type: {message_type}')
 
         return class_.unserialize(message_payload)
@@ -68,7 +53,7 @@ class HandshakeMessage(HasStructMixin, Message):
 
     _format: str = f'B{PSTRLEN}s8s20s20s'
 
-    def __init__(self, info_hash: bytes, peer_id: bytes, reserved: bytes = b'0' * 8):
+    def __init__(self, info_hash: bytes, peer_id: bytes, reserved: bytes = b'\x00' * 8):
         self.info_hash = info_hash
         self.peer_id = peer_id
         self.reserved = reserved
@@ -90,6 +75,10 @@ class HandshakeMessage(HasStructMixin, Message):
             raise ValueError()
 
         return cls(info_hash=info_hash, peer_id=peer_id, reserved=reserved)
+
+    @classmethod
+    def size(cls) -> int:
+        return struct.calcsize(cls._format)
 
 
 class KeepAliveMessage(Message):
@@ -235,3 +224,9 @@ class CancelMessage(HasStructMixin, TypedMessage):
         index, begin, length = cls.unpack(data)
 
         return cls(index=index, begin=begin, length=length)
+
+
+TYPED_MESSAGES_BY_ID = {
+    msg_class._type: msg_class for msg_class in (ChokeMessage, UnchokeMessage, InterestedMessage, NotInterestedMessage, HaveMessage,
+                                  BitfieldMessage, RequestMessage, PieceMessage, CancelMessage)
+}

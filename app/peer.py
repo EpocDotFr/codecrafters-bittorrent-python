@@ -46,7 +46,7 @@ class Peer:
         if message_length == 0:
             return messages.KeepAliveMessage()
 
-        return messages.TypedMessage.unserialize(self.socket.recv(message_length))
+        return messages.TypedMessage.from_bytes(self.socket.recv(message_length))
 
     def send(self, message: messages.Message) -> None:
         self.socket.sendall(message.serialize())
@@ -58,7 +58,7 @@ class Peer:
         ).serialize())
 
         response = messages.HandshakeMessage.unserialize(
-            self.socket.recv(68)
+            self.socket.recv(messages.HandshakeMessage.size())
         )
 
         if not isinstance(response, messages.HandshakeMessage):
