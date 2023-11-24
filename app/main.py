@@ -37,7 +37,7 @@ def main() -> None:
 
     download_piece_arg_parser = command_arg_parser.add_parser('download_piece')
     download_piece_arg_parser.add_argument('filename')
-    download_piece_arg_parser.add_argument('piece_number', type=int)
+    download_piece_arg_parser.add_argument('piece_index', type=int)
     download_piece_arg_parser.add_argument('-o', '--output')
 
     args = arg_parser.parse_args()
@@ -88,9 +88,9 @@ def main() -> None:
         address = random.choice(tracker.request()['peers'])
 
         with Peer(MY_PEER_ID, torrent, address) as peer:
-            peer.download_piece(args.piece_number, args.output)
+            peer.download_piece(args.piece_index, args.output)
 
-        print(f'Piece {args.piece_number} downloaded to {args.output}.')
+        print(f'Piece {args.piece_index} downloaded to {args.output}.')
 
 
 if __name__ == '__main__':

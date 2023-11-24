@@ -1,7 +1,9 @@
-from typing import BinaryIO, OrderedDict, List, Any
+from typing import BinaryIO, OrderedDict, List, Any, Tuple, Generator
 from hashlib import sha1
 from app import bencode
 from io import BytesIO
+
+BLOCK_LENGTH = 16 * 1024
 
 
 class Torrent:
@@ -27,6 +29,12 @@ class Torrent:
             f.seek(0)
 
             self.info_hash = sha1(f.read())
+
+    def blocks(self, piece_index: int) -> Generator[Tuple[int, int], None, None]:
+        piece_length = 32000 # self.piece_length
+
+        for begin in range(0, piece_length, BLOCK_LENGTH):
+            yield begin, BLOCK_LENGTH
 
     @classmethod
     def load(cls, f: BinaryIO):

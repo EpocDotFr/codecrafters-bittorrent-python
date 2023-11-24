@@ -2,7 +2,8 @@ from typing import Tuple, Optional
 from app.torrent import Torrent
 import app.messages as messages
 import socket
-import struct
+
+from pprint import pprint
 
 
 class Peer:
@@ -19,7 +20,7 @@ class Peer:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.settimeout(2)
 
-    def download_piece(self, piece_number: int, output: str) -> None:
+    def download_piece(self, piece_index: int, output: str) -> None:
         if not self.handshake():
             return
 
@@ -35,7 +36,9 @@ class Peer:
         if not isinstance(message, messages.UnchokeMessage):
             return
 
-        # self.send_message(RequestMessage()) TODO
+        pprint(list(self.torrent.blocks(piece_index)))
+
+        # self.send(messages.RequestMessage()) TODO
 
     def receive(self) -> Optional[messages.Message]:
         message_length = int.from_bytes(self.socket.recv(4), byteorder='big')
