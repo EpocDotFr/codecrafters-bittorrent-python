@@ -78,7 +78,7 @@ def main() -> None:
             handshake = peer.handshake()
 
         if handshake:
-            print(f'Peer ID: {handshake[-1].hex()}')
+            print(f'Peer ID: {handshake.peer_id.hex()}')
     elif args.command == 'download_piece':
         with open(args.filename, 'rb') as f:
             torrent = Torrent.load(f)
