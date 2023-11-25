@@ -33,18 +33,6 @@ class TypedMessage(Message):
 
         return struct.pack('>IB', 1 + len(message_payload), self._type) + message_payload
 
-    @classmethod
-    def from_bytes(cls, data: bytes):
-        message_type = data[0]
-        message_payload = data[1:] if len(data) > 1 else b''
-
-        class_ = TYPED_MESSAGES_BY_ID.get(message_type)
-
-        if not class_:
-            raise ValueError(f'Unknown message type: {message_type}')
-
-        return class_.unserialize(message_payload)
-
 
 class HandshakeMessage(HasStructMixin, Message):
     info_hash: bytes
@@ -226,7 +214,19 @@ class CancelMessage(HasStructMixin, TypedMessage):
         return cls(index=index, begin=begin, length=length)
 
 
-TYPED_MESSAGES_BY_ID = {
+MESSAGES_BY_ID = {
     msg_class._type: msg_class for msg_class in (ChokeMessage, UnchokeMessage, InterestedMessage, NotInterestedMessage, HaveMessage,
                                   BitfieldMessage, RequestMessage, PieceMessage, CancelMessage)
 }
+
+
+def from_bytes(data: bytes):
+    message_type = data[0]
+    message_payload = data[1:] if len(data) > 1 else b''
+
+    class_ = MESSAGES_BY_ID.get(message_type)
+
+    if not class_:
+        raise ValueError(f'Unknown message type: {message_type}')
+
+    return class_.unserialize(message_payload)

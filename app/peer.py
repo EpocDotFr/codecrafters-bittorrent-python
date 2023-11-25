@@ -49,7 +49,7 @@ class Peer:
         if message_length == 0:
             return messages.KeepAliveMessage()
 
-        return messages.TypedMessage.from_bytes(self.socket.recv(message_length))
+        return messages.from_bytes(self.socket.recv(message_length))
 
     def send(self, message: messages.Message) -> None:
         self.socket.sendall(message.serialize())
