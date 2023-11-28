@@ -28,8 +28,11 @@ class Message:
 class TypedMessage(Message):
     _type: int
 
+    def to_bytes(self) -> bytes:
+        return b''
+
     def serialize(self) -> bytes:
-        message_payload = super().serialize()
+        message_payload = self.to_bytes()
 
         return struct.pack('>IB', 1 + len(message_payload), self._type) + message_payload
 
@@ -98,7 +101,7 @@ class HaveMessage(HasStructMixin, TypedMessage):
     def __init__(self, piece_index: int):
         self.piece_index = piece_index
 
-    def serialize(self) -> bytes:
+    def to_bytes(self) -> bytes:
         return self.pack(
             self.piece_index
         )
@@ -118,7 +121,7 @@ class BitfieldMessage(TypedMessage):
     def __init__(self, bits: bytes):
         self.bits = bits
 
-    def serialize(self) -> bytes:
+    def to_bytes(self) -> bytes:
         return self.bits
 
     @classmethod
@@ -147,7 +150,7 @@ class RequestMessage(HasStructMixin, TypedMessage):
         self.begin = begin
         self.length = length
 
-    def serialize(self) -> bytes:
+    def to_bytes(self) -> bytes:
         return self.pack(
             self.index,
             self.begin,
@@ -174,7 +177,7 @@ class PieceMessage(HasStructMixin, TypedMessage):
         self.begin = begin
         self.block = block
 
-    def serialize(self) -> bytes:
+    def to_bytes(self) -> bytes:
         return self.pack(
             self.index,
             self.begin
@@ -200,7 +203,7 @@ class CancelMessage(HasStructMixin, TypedMessage):
         self.begin = begin
         self.length = length
 
-    def serialize(self) -> bytes:
+    def to_bytes(self) -> bytes:
         return self.pack(
             self.index,
             self.begin,

@@ -3,8 +3,6 @@ from app.torrent import Torrent
 import app.messages as messages
 import socket
 
-from pprint import pprint
-
 
 class Peer:
     my_peer_id: bytes
@@ -20,25 +18,39 @@ class Peer:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.settimeout(2)
 
-    def download_piece(self, piece_index: int, output: str) -> None:
+    def download_piece(self, piece_index: int, output: str) -> bool:
         if not self.handshake():
-            return
+            return False
 
         message = self.receive()
 
         if not isinstance(message, messages.BitfieldMessage):
-            return
+            return False
 
         self.send(messages.InterestedMessage())
 
         message = self.receive()
 
         if not isinstance(message, messages.UnchokeMessage):
-            return
+            return False
 
-        pprint(list(self.torrent.blocks(piece_index)))
+        piece_length = self.torrent.compute_piece_length(piece_index)
+        piece_data = bytearray(piece_length)
 
-        # self.send(messages.RequestMessage()) TODO
+        for block_begin, block_length in self.torrent.iter_blocks(piece_length):
+            self.send(messages.RequestMessage(index=piece_index, begin=block_begin, length=block_length))
+
+            message = self.receive()
+
+            if not isinstance(message, messages.PieceMessage):
+                return False
+
+            piece_data[message.begin:len(message.block)] = message.block
+
+        with open(output, 'wb') as f:
+            f.write(piece_data)
+
+        return True
 
     def receive(self) -> Optional[messages.Message]:
         message_length = int.from_bytes(self.socket.recv(4), byteorder='big')

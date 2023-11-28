@@ -20,11 +20,29 @@ class Torrent:
         self.piece_hashes = piece_hashes
         self.info_hash = info_hash
 
-    def blocks(self, piece_index: int) -> Generator[Tuple[int, int], None, None]:
-        piece_length = 32000 # self.piece_length
+    def compute_piece_length(self, piece_index: int) -> int:
+        if piece_index > len(self.piece_hashes) - 1:
+            raise ValueError('Invalid piece_index')
 
-        for begin in range(0, piece_length, BLOCK_LENGTH):
-            yield begin, BLOCK_LENGTH
+        pieces_length = (piece_index + 1) * self.piece_length
+
+        if pieces_length > self.length:
+            piece_length = self.piece_length - (pieces_length - self.length)
+        else:
+            piece_length = self.piece_length
+
+        return piece_length
+
+    def iter_blocks(self, piece_length: int) -> Generator[Tuple[int, int], None, None]:
+        for block_index, block_begin in enumerate(range(0, piece_length, BLOCK_LENGTH)):
+            blocks_length = (block_index + 1) * BLOCK_LENGTH
+
+            if blocks_length > piece_length:
+                block_length = BLOCK_LENGTH - (blocks_length - piece_length)
+            else:
+                block_length = BLOCK_LENGTH
+
+            yield block_begin, block_length
 
     @classmethod
     def load(cls, f: BinaryIO):
