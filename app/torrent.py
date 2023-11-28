@@ -7,28 +7,18 @@ BLOCK_LENGTH = 16 * 1024
 
 
 class Torrent:
-    data: OrderedDict
     tracker_url: str
     length: int
     piece_length: int
     piece_hashes: List[str]
     info_hash: Any
 
-    def __init__(self, data: OrderedDict):
-        self.data = data
-
-        self.tracker_url = self.data['announce'].decode()
-        self.length = self.data['info']['length']
-        self.piece_length = self.data['info']['piece length']
-
-        self.piece_hashes = Torrent.parse_piece_hashes(self.data['info']['pieces'])
-
-        with BytesIO() as f:
-            bencode.pack(f, self.data['info'])
-
-            f.seek(0)
-
-            self.info_hash = sha1(f.read())
+    def __init__(self, tracker_url: str, length: int, piece_length: int, piece_hashes: List[str], info_hash: Any):
+        self.tracker_url = tracker_url
+        self.length = length
+        self.piece_length = piece_length
+        self.piece_hashes = piece_hashes
+        self.info_hash = info_hash
 
     def blocks(self, piece_index: int) -> Generator[Tuple[int, int], None, None]:
         piece_length = 32000 # self.piece_length
@@ -38,10 +28,27 @@ class Torrent:
 
     @classmethod
     def load(cls, f: BinaryIO):
-        return cls(bencode.unpack(f))
+        data = bencode.unpack(f)
+
+        return cls(
+            tracker_url=data['announce'].decode(),
+            length=data['info']['length'],
+            piece_length=data['info']['piece length'],
+            piece_hashes=Torrent.parse_piece_hashes(data['info']['pieces']),
+            info_hash=Torrent.generate_info_hash(data['info'])
+        )
 
     @staticmethod
     def parse_piece_hashes(pieces: bytes) -> List:
         return [
             pieces[i:i + 20].hex() for i in range(0, len(pieces), 20)
         ]
+
+    @staticmethod
+    def generate_info_hash(info: OrderedDict) -> Any:
+        with BytesIO() as f:
+            bencode.pack(f, info)
+
+            f.seek(0)
+
+            return sha1(f.read())
