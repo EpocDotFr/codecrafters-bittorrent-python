@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 from app.torrent import Torrent
 import app.messages as messages
 import socket
@@ -18,7 +18,7 @@ class Peer:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.settimeout(2)
 
-    def download_piece(self, piece_index: int, output: str) -> bool:
+    def download_piece(self, piece_index: int) -> Union[bytearray, bool]:
         if not self.handshake():
             return False
 
@@ -45,12 +45,12 @@ class Peer:
             if not isinstance(message, messages.PieceMessage):
                 return False
 
+            if message.index != piece_index:
+                continue
+
             piece_data[message.begin:len(message.block)] = message.block
 
-        with open(output, 'wb') as f:
-            f.write(piece_data)
-
-        return True
+        return piece_data
 
     def receive(self) -> Optional[messages.Message]:
         message_length = int.from_bytes(self.socket.recv(4), byteorder='big')

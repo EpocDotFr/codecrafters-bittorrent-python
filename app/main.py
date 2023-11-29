@@ -88,8 +88,13 @@ def main() -> None:
         address = random.choice(tracker.request()['peers'])
 
         with Peer(MY_PEER_ID, torrent, address) as peer:
-            if peer.download_piece(args.piece_index, args.output):
-                print(f'Piece {args.piece_index} downloaded to {args.output}.')
+            piece_data = peer.download_piece(args.piece_index)
+
+        if isinstance(piece_data, bytearray):
+            with open(args.output, 'wb') as f:
+                f.write(piece_data)
+
+            print(f'Piece {args.piece_index} downloaded to {args.output}.')
 
 
 if __name__ == '__main__':
