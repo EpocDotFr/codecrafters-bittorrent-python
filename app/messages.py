@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Tuple
 import struct
 
@@ -14,6 +15,10 @@ class HasStructMixin:
     @classmethod
     def unpack(cls, data: bytes) -> Tuple:
         return struct.unpack(f'>{cls._format}', data)
+
+    @classmethod
+    def size(cls) -> int:
+        return struct.calcsize(cls._format)
 
 
 class Message:
@@ -37,17 +42,13 @@ class TypedMessage(Message):
         return struct.pack('>IB', 1 + len(message_payload), self._type) + message_payload
 
 
+@dataclass
 class HandshakeMessage(HasStructMixin, Message):
     info_hash: bytes
     peer_id: bytes
-    reserved: bytes
+    reserved: bytes = b'\x00' * 8
 
     _format: str = f'B{PSTRLEN}s8s20s20s'
-
-    def __init__(self, info_hash: bytes, peer_id: bytes, reserved: bytes = b'\x00' * 8):
-        self.info_hash = info_hash
-        self.peer_id = peer_id
-        self.reserved = reserved
 
     def serialize(self) -> bytes:
         return self.pack(
@@ -66,10 +67,6 @@ class HandshakeMessage(HasStructMixin, Message):
             raise ValueError()
 
         return cls(info_hash=info_hash, peer_id=peer_id, reserved=reserved)
-
-    @classmethod
-    def size(cls) -> int:
-        return struct.calcsize(cls._format)
 
 
 class KeepAliveMessage(Message):
@@ -92,14 +89,12 @@ class NotInterestedMessage(TypedMessage):
     _type: int = 3
 
 
+@dataclass
 class HaveMessage(HasStructMixin, TypedMessage):
     piece_index: int
 
     _format = 'I'
     _type: int = 4
-
-    def __init__(self, piece_index: int):
-        self.piece_index = piece_index
 
     def to_bytes(self) -> bytes:
         return self.pack(
@@ -113,13 +108,11 @@ class HaveMessage(HasStructMixin, TypedMessage):
         return cls(piece_index=piece_index)
 
 
+@dataclass
 class BitfieldMessage(TypedMessage):
     bits: bytes
 
     _type: int = 5
-
-    def __init__(self, bits: bytes):
-        self.bits = bits
 
     def to_bytes(self) -> bytes:
         return self.bits
@@ -137,6 +130,7 @@ class BitfieldMessage(TypedMessage):
         return int(b, 2).to_bytes(4, byteorder='big')
 
 
+@dataclass
 class RequestMessage(HasStructMixin, TypedMessage):
     index: int
     begin: int
@@ -144,11 +138,6 @@ class RequestMessage(HasStructMixin, TypedMessage):
 
     _format = 'III'
     _type: int = 6
-
-    def __init__(self, index: int, begin: int, length: int):
-        self.index = index
-        self.begin = begin
-        self.length = length
 
     def to_bytes(self) -> bytes:
         return self.pack(
@@ -164,6 +153,7 @@ class RequestMessage(HasStructMixin, TypedMessage):
         return cls(index=index, begin=begin, length=length)
 
 
+@dataclass
 class PieceMessage(HasStructMixin, TypedMessage):
     index: int
     begin: int
@@ -171,11 +161,6 @@ class PieceMessage(HasStructMixin, TypedMessage):
 
     _format = 'II'
     _type: int = 7
-
-    def __init__(self, index: int, begin: int, block: bytes):
-        self.index = index
-        self.begin = begin
-        self.block = block
 
     def to_bytes(self) -> bytes:
         return self.pack(
@@ -190,6 +175,7 @@ class PieceMessage(HasStructMixin, TypedMessage):
         return cls(index=index, begin=begin, block=data[8:])
 
 
+@dataclass
 class CancelMessage(HasStructMixin, TypedMessage):
     index: int
     begin: int
@@ -197,11 +183,6 @@ class CancelMessage(HasStructMixin, TypedMessage):
 
     _format = 'III'
     _type: int = 8
-
-    def __init__(self, index: int, begin: int, length: int):
-        self.index = index
-        self.begin = begin
-        self.length = length
 
     def to_bytes(self) -> bytes:
         return self.pack(
