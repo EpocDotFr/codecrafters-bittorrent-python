@@ -20,7 +20,7 @@ def _bytes_to_str(obj) -> str:
 def main() -> None:
     arg_parser = argparse.ArgumentParser()
 
-    command_arg_parser = arg_parser.add_subparsers(dest='command')
+    command_arg_parser = arg_parser.add_subparsers(dest='command', required=True)
 
     decode_arg_parser = command_arg_parser.add_parser('decode')
     decode_arg_parser.add_argument('data')
